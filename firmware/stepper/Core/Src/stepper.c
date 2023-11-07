@@ -146,7 +146,7 @@ void set_movement(uint8_t stepper_index, uint32_t degres_x100, uint16_t vel_x10,
 
     // Configures timer to set the velocity for the first step
 
-	uint32_t counts = (uint32_t)((600.0 * steppers_config[stepper_index].htim_frequency) / (steppers_status[stepper_index].vel_x10_p[0] * steppers_config[stepper_index].steps_per_rev));
+	uint32_t counts = (uint32_t)((3600.0 * steppers_config[stepper_index].htim_frequency) / (steppers_status[stepper_index].vel_x10_p[0] * steppers_config[stepper_index].steps_per_rev));
 	// Check defined period limits
 	if(counts < 1 || counts > 65535){
 		Error_Handler();
@@ -162,7 +162,7 @@ uint8_t is_moving(uint8_t stepper_index){
 }
 
 void start_movement(uint8_t stepper_index){
-	if(steppers_status[stepper_index].steps == 0 || steppers_status[stepper_index].vel_x10_p == NULL){
+	if(steppers_status[stepper_index].target_steps == 0 || steppers_status[stepper_index].vel_x10_p == NULL){
 		return;
 	}
 	if(steppers_config[stepper_index].htim->State != HAL_TIM_STATE_READY){
@@ -183,7 +183,7 @@ void stepper_interrupt_call(TIM_HandleTypeDef* htim){
 			if(steppers_status[stepper_index].steps < steppers_status[stepper_index].target_steps){
 				take_one_step(stepper_index);
 
-				uint32_t counts = (uint32_t)((600.0 * steppers_config[stepper_index].htim_frequency) / (steppers_status[stepper_index].vel_x10_p[steppers_status[stepper_index].steps] * steppers_config[stepper_index].steps_per_rev));
+				uint32_t counts = (uint32_t)((3600.0 * steppers_config[stepper_index].htim_frequency) / (steppers_status[stepper_index].vel_x10_p[steppers_status[stepper_index].steps] * steppers_config[stepper_index].steps_per_rev));
 				if(counts < 1 || counts > 65535){
 					Error_Handler();
 				}
@@ -193,6 +193,7 @@ void stepper_interrupt_call(TIM_HandleTypeDef* htim){
 				steppers_status[stepper_index].steps++;
 			}else{
 				steppers_status[stepper_index].steps = 0;
+				steppers_status[stepper_index].target_steps = 0;
 				// Free the memory of the dynamically allocated array for the velocities
 				free(steppers_status[stepper_index].vel_x10_p);
 				HAL_TIM_Base_Stop_IT(steppers_config[stepper_index].htim);

@@ -129,8 +129,8 @@ int main(void)
   uint8_t value = (uint8_t)movements_buffer_1.counter;
   HAL_UART_Transmit(&huart3,&value, 1, 10);
 
-  set_movement(0, 9000, 200, 100, 0);
-  start_all_movements();
+  uint8_t direction = 0;
+  uint8_t direction_2 = 0;
   while (1)
   {
     /* USER CODE END WHILE */
@@ -147,6 +147,16 @@ int main(void)
 //	}
 //    uint8_t value = (uint8_t)movements_buffer_1.counter;
 //    HAL_UART_Transmit(&huart3,&value, 1, 10);
+	if(!is_moving(0)){
+		direction = !direction;
+		set_movement(0, 9000, 300, 150, direction);
+		start_all_movements();
+	}
+	if(!is_moving(1)){
+		direction_2 = !direction_2;
+		set_movement(1, 9000, 300, 150, direction_2);
+		start_all_movements();
+	}
 	HAL_Delay(10);
   }
   /* USER CODE END 3 */
