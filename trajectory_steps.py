@@ -14,7 +14,6 @@ velocity = min(np.sqrt(max_acceleration * position), max_velocity)
 
 t_1 = velocity / max_acceleration
 t_2 = position / velocity
-t_3 = t_1 + t_2
 
 p_1 = (max_acceleration / 2.0) * t_1**2
 p_2 = velocity * (t_2 - t_1) + (max_acceleration / 2.0) * t_1**2
@@ -37,11 +36,12 @@ for p in positions_array:
     elif p_1 < p <= p_2:
         v.append(velocity)
     else:
-        v.append(np.sqrt(velocity**2 - 2.0 * max_acceleration * (p - p_2)))
+        # v.append(np.sqrt(velocity**2 - 2.0 * max_acceleration * (p - p_2)))
+        v.append(np.sqrt(2.0 * max_acceleration * (position-p)))
 
 print(v)
 print(len(v))
 
-plt.plot(v)
+plt.plot(v, '-x')
 plt.grid()
 plt.show()

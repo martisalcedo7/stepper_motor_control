@@ -128,6 +128,9 @@ int main(void)
   init_buffer(&movements_buffer_2);
   uint8_t value = (uint8_t)movements_buffer_1.counter;
   HAL_UART_Transmit(&huart3,&value, 1, 10);
+
+  set_movement(0, 9000, 200, 100, 0);
+  start_all_movements();
   while (1)
   {
     /* USER CODE END WHILE */
@@ -135,15 +138,15 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
 
-	if(!is_moving(0) && !is_moving(1) && !is_empty(&movements_buffer_1) && !is_empty(&movements_buffer_2)){
-		movement_t move = get_movement(&movements_buffer_1);
-		set_movement(0, move.degrees_x10, move.rpm_x10, move.direction);
-		move = get_movement(&movements_buffer_2);
-		set_movement(1, move.degrees_x10, move.rpm_x10, move.direction);
-		start_all_movements();
-	}
-    uint8_t value = (uint8_t)movements_buffer_1.counter;
-    HAL_UART_Transmit(&huart3,&value, 1, 10);
+//	if(!is_moving(0) && !is_moving(1) && !is_empty(&movements_buffer_1) && !is_empty(&movements_buffer_2)){
+//		movement_t move = get_movement(&movements_buffer_1);
+//		set_movement(0, move.degrees_x10, move.rpm_x10, move.direction);
+//		move = get_movement(&movements_buffer_2);
+//		set_movement(1, move.degrees_x10, move.rpm_x10, move.direction);
+//		start_all_movements();
+//	}
+//    uint8_t value = (uint8_t)movements_buffer_1.counter;
+//    HAL_UART_Transmit(&huart3,&value, 1, 10);
 	HAL_Delay(10);
   }
   /* USER CODE END 3 */
