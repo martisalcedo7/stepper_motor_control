@@ -154,7 +154,7 @@ int main(void)
 	}
 	if(!is_moving(1)){
 		direction_2 = !direction_2;
-		set_movement(1, 9000, 300, 150, direction_2);
+		set_movement(1, 4500, 300, 150, direction_2);
 		start_all_movements();
 	}
 	HAL_Delay(10);

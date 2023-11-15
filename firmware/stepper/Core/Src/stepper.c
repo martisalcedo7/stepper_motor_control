@@ -145,15 +145,11 @@ void set_movement(uint8_t stepper_index, uint32_t degres_x100, uint16_t vel_x10,
     }
 
     // Configures timer to set the velocity for the first step
-
 	uint32_t counts = (uint32_t)((3600.0 * steppers_config[stepper_index].htim_frequency) / (steppers_status[stepper_index].vel_x10_p[0] * steppers_config[stepper_index].steps_per_rev));
 	// Check defined period limits
 	if(counts < 1 || counts > 65535){
 		Error_Handler();
 	}
-
-//	steppers_config[stepper_index].htim->Init.Period = counts - 1;
-//	HAL_TIM_Base_Init(steppers_config[stepper_index].htim);
 	__HAL_TIM_SET_AUTORELOAD(steppers_config[stepper_index].htim, (counts - 1));
 }
 
@@ -188,7 +184,6 @@ void stepper_interrupt_call(TIM_HandleTypeDef* htim){
 					Error_Handler();
 				}
 				__HAL_TIM_SET_AUTORELOAD(steppers_config[stepper_index].htim, (counts - 1));
-
 
 				steppers_status[stepper_index].steps++;
 			}else{
