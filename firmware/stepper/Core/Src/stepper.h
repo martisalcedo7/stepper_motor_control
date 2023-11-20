@@ -30,11 +30,22 @@ typedef struct
 typedef struct
 {
 	uint32_t    steps;
-	uint32_t    target_steps;
 	uint8_t     step_index;
 	uint8_t     direction;
-	uint16_t *  vel_x10_p;
 }STEPPER_status;
+
+
+typedef struct
+{
+	int32_t    taken_steps;
+	uint8_t     direction;
+	uint16_t    array_size;
+	float       *positions;
+	uint16_t    current_position_index;
+	float       accumulated_position;
+	float       accumulated_time;
+	float       step_time_increment;
+}MOVEMENT_status;
 
 
 const static uint8_t UNIPOLAR_HALF_STEP_PATTERN[8][4] = {
@@ -51,9 +62,11 @@ const static uint8_t UNIPOLAR_HALF_STEP_PATTERN[8][4] = {
 void turn_off(uint8_t stepper_index);
 void take_one_step(uint8_t stepper_index);
 void stepper_interrupt_call(TIM_HandleTypeDef* htim);
-void set_movement(uint8_t stepper_index, uint32_t degres_x100, uint16_t vel_x10, uint16_t accel_x10, uint8_t direction);
+void set_movement(uint8_t stepper_index, float theta_final, float v_max, float a_max);
+void set_cartesian_movement(float xf, float yf, float current_theta_1, float current_theta_2, float v_max_cartesian, float a_max_cartesian);
 void start_movement(uint8_t stepper_index);
 void start_all_movements(void);
+float get_stepper_position(uint8_t stepper_index);
 uint8_t is_moving(uint8_t stepper_index);
 uint32_t degrees_x100_to_steps(uint32_t degrees_x100, uint16_t steps_per_rev);
 

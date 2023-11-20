@@ -40,12 +40,14 @@ int main(void) {
 
   uint16_t current_position_index = 0;
   float accumulated_position_stepper = 0;
-  float step_time = 0;
+  float accumulated_time_stepper = 0;
+  float step_time_increment = 0;
 
-  while(step_time >= 0){
+  while(step_time_increment >= 0){
     float sign;
-    step_time = calculate_next_step_time(theta_1, array_size, &current_position_index, &accumulated_position_stepper, &sign);
-    printf("%.4f, %.4f\n", step_time, sign);
+    // step_time_increment = calculate_next_step_time(theta_1, array_size, &current_position_index, &accumulated_position_stepper, &sign);
+    calculate_next_step_time_increment(theta_1, array_size, &current_position_index, &accumulated_position_stepper, &accumulated_time_stepper, &sign, &step_time_increment);
+    printf("%.8f, %.8f\n", step_time_increment, sign);
   }
 
   free(theta_1);

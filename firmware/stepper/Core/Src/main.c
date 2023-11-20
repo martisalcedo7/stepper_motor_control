@@ -24,6 +24,8 @@
 /* USER CODE BEGIN Includes */
 #include "stepper.h"
 #include "movements_buffer.h"
+#include <math.h>
+#include "robot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -129,14 +131,31 @@ int main(void)
   uint8_t value = (uint8_t)movements_buffer_1.counter;
   HAL_UART_Transmit(&huart3,&value, 1, 10);
 
+  ROBOT robot;
+  robot.current_theta_1 = 0.0;
+  robot.current_theta_2 = 0.0;
+  robot.l_1 = 0.08;
+  robot.l_2 = 0.10;
+
   uint8_t direction = 0;
-  uint8_t direction_2 = 0;
+  if(!is_moving(0) && !is_moving(1)){
+	  set_cartesian_movement(0.05, 0.05, 0.01, 0.01, 0.05, 0.05);
+	  start_all_movements();
+  }
+
+  float x_coordinates[] = {0.05, 0.05, 0.1, 0.1};
+  float y_coordinates[] = {0.05, 0.1, 0.1, 0.05};
+  uint8_t counter = 0;
+//	if(!is_moving(1)){
+//		set_movement(1, M_PI_2, 1.0, 1.0);
+//		start_movement(1);
+//	}
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+//	HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
 
 //	if(!is_moving(0) && !is_moving(1) && !is_empty(&movements_buffer_1) && !is_empty(&movements_buffer_2)){
 //		movement_t move = get_movement(&movements_buffer_1);
@@ -147,16 +166,23 @@ int main(void)
 //	}
 //    uint8_t value = (uint8_t)movements_buffer_1.counter;
 //    HAL_UART_Transmit(&huart3,&value, 1, 10);
-	if(!is_moving(0)){
-		direction = !direction;
-		set_movement(0, 9000, 300, 150, direction);
+//	if(!is_moving(0) && !is_moving(1)){
+//		direction = !direction;
+//		if(direction){
+//			set_movement(0, -M_PI_2, 1.0, 1.0);
+//		}else{
+//			set_movement(0, M_PI_2, 1.0, 1.0);
+//		}
+//		start_movement(0);
+//	}
+  	if(!is_moving(0) && !is_moving(1)){
+		set_cartesian_movement(x_coordinates[counter], y_coordinates[counter], get_stepper_position(0), get_stepper_position(1), 0.05, 0.05);
 		start_all_movements();
-	}
-	if(!is_moving(1)){
-		direction_2 = !direction_2;
-		set_movement(1, 4500, 300, 150, direction_2);
-		start_all_movements();
-	}
+		counter++;
+		if(counter >= 4){
+			counter = 0;
+		}
+  	}
 	HAL_Delay(10);
   }
   /* USER CODE END 3 */
@@ -496,7 +522,9 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
+	HAL_GPIO_WritePin(GPIOB, LD2_Pin, 1);
 	stepper_interrupt_call(htim);
+	HAL_GPIO_WritePin(GPIOB, LD2_Pin, 0);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
