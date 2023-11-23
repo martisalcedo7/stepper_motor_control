@@ -176,7 +176,7 @@ int main(void)
 //		start_movement(0);
 //	}
   	if(!is_moving(0) && !is_moving(1)){
-		set_cartesian_movement(x_coordinates[counter], y_coordinates[counter], get_stepper_position(0), get_stepper_position(1), 0.05, 0.05);
+		set_cartesian_movement(x_coordinates[counter], y_coordinates[counter], get_stepper_position(0), get_stepper_position(1), 0.1, 0.2);
 		start_all_movements();
 		counter++;
 		if(counter >= 4){
@@ -522,9 +522,9 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-	HAL_GPIO_WritePin(GPIOB, LD2_Pin, 1);
+//	HAL_GPIO_WritePin(GPIOB, LD2_Pin, 1);
 	stepper_interrupt_call(htim);
-	HAL_GPIO_WritePin(GPIOB, LD2_Pin, 0);
+//	HAL_GPIO_WritePin(GPIOB, LD2_Pin, 0);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

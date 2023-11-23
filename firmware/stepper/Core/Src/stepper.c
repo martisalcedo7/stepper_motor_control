@@ -12,12 +12,7 @@
 #include <stdlib.h>
 #include "trajectories.h"
 
-// The angular units are expressed with deg, deg/s and deg/s2
-
 #define STEPPER_UNITS 2
-
-//#define INV_SQRT_10 0.31622776601683793319
-#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 // Access htim2 from main.c
 extern TIM_HandleTypeDef htim6, htim7;
@@ -49,16 +44,14 @@ const static STEPPER_config steppers_config[STEPPER_UNITS] =
 static volatile STEPPER_status steppers_status[STEPPER_UNITS] =
 {
 		{.steps = 0,
-		 .step_index = 0,
-		 .direction = DIR_CCW},
+		 .step_index = 0},
 		{.steps = 0,
-		 .step_index = 0,
-		 .direction = DIR_CCW}
+		 .step_index = 0}
 };
 
 static volatile MOVEMENT_status movement_status[STEPPER_UNITS] = {
 		{
-			.taken_steps = 0,
+		    .direction = DIR_CCW,
 			.array_size = 0,
 			.positions = NULL,
 			.current_position_index = 0,
@@ -67,7 +60,7 @@ static volatile MOVEMENT_status movement_status[STEPPER_UNITS] = {
 			.step_time_increment = 0
 		},
 		{
-			.taken_steps = 0,
+			.direction = DIR_CCW,
 			.array_size = 0,
 			.positions = NULL,
 			.current_position_index = 0,
@@ -79,7 +72,7 @@ static volatile MOVEMENT_status movement_status[STEPPER_UNITS] = {
 };
 
 float get_stepper_position(uint8_t stepper_index){
-	return movement_status[stepper_index].taken_steps * STEP_SIZE;
+	return steppers_status[stepper_index].steps * STEP_SIZE;
 }
 
 void turn_off(uint8_t stepper_index){
@@ -97,7 +90,7 @@ void take_one_step(uint8_t stepper_index){
 	HAL_GPIO_WritePin(steppers_config[stepper_index].in_gpio[3], steppers_config[stepper_index].in_pin[3], UNIPOLAR_HALF_STEP_PATTERN[steppers_status[stepper_index].step_index][3]);
 
 	// Update & Check The Index
-	if(steppers_status[stepper_index].direction == DIR_CW)
+	if(movement_status[stepper_index].direction == DIR_CCW)
 	{
 		if(steppers_status[stepper_index].step_index == steppers_config[stepper_index].max_index)
 		{
@@ -106,9 +99,8 @@ void take_one_step(uint8_t stepper_index){
 			steppers_status[stepper_index].step_index++;
 		}
 	}
-	else if(steppers_status[stepper_index].direction == DIR_CCW)
+	else if(movement_status[stepper_index].direction == DIR_CW)
 	{
-
 		if(steppers_status[stepper_index].step_index == 0)
 		{
 			steppers_status[stepper_index].step_index = steppers_config[stepper_index].max_index;
@@ -118,12 +110,8 @@ void take_one_step(uint8_t stepper_index){
 	}
 }
 
-uint32_t degrees_x100_to_steps(uint32_t degrees_x100, uint16_t steps_per_rev){
-	return (degrees_x100 * steps_per_rev)/36000;
-}
 
-
-void set_movement(uint8_t stepper_index, float theta_final, float v_max, float a_max){
+void set_joint_movement(uint8_t stepper_index, float theta_final, float v_max, float a_max){
 
 	// Calculate array size for the movement
 
@@ -150,7 +138,7 @@ void set_movement(uint8_t stepper_index, float theta_final, float v_max, float a
     calculate_next_step_time_increment(movement_status[stepper_index].positions,
     		movement_status[stepper_index].array_size, &movement_status[stepper_index].current_position_index,
 			&movement_status[stepper_index].accumulated_position, &movement_status[stepper_index].accumulated_time,
-			&steppers_status[stepper_index].direction, &movement_status[stepper_index].step_time_increment);
+			&movement_status[stepper_index].direction, &movement_status[stepper_index].step_time_increment);
 
     // Configures timer to set the velocity for the first step
 	uint16_t counts = (uint16_t)(steppers_config[stepper_index].htim_frequency * movement_status[stepper_index].step_time_increment);
@@ -181,7 +169,7 @@ void set_cartesian_movement(float xf, float yf, float current_theta_1, float cur
     calculate_next_step_time_increment(movement_status[0].positions,
     		movement_status[0].array_size, &movement_status[0].current_position_index,
 			&movement_status[0].accumulated_position, &movement_status[0].accumulated_time,
-			&steppers_status[0].direction, &movement_status[0].step_time_increment);
+			&movement_status[0].direction, &movement_status[0].step_time_increment);
 
     // Configures timer to set the velocity for the first step
 	uint16_t counts = (uint16_t)(steppers_config[0].htim_frequency * movement_status[0].step_time_increment);
@@ -194,7 +182,7 @@ void set_cartesian_movement(float xf, float yf, float current_theta_1, float cur
     calculate_next_step_time_increment(movement_status[1].positions,
     		movement_status[1].array_size, &movement_status[1].current_position_index,
 			&movement_status[1].accumulated_position, &movement_status[1].accumulated_time,
-			&steppers_status[1].direction, &movement_status[1].step_time_increment);
+			&movement_status[1].direction, &movement_status[1].step_time_increment);
 
     // Configures timer to set the velocity for the first step
 	counts = (uint16_t)(steppers_config[1].htim_frequency * movement_status[1].step_time_increment);
@@ -236,16 +224,16 @@ void stepper_interrupt_call(TIM_HandleTypeDef* htim){
 		if(htim == steppers_config[stepper_index].htim){
 
 			take_one_step(stepper_index);
-			if(steppers_status[stepper_index].direction){
-				movement_status[stepper_index].taken_steps--;
+			if(movement_status[stepper_index].direction){
+				steppers_status[stepper_index].steps--;
 			}else{
-				movement_status[stepper_index].taken_steps++;
+				steppers_status[stepper_index].steps++;
 			}
 
 		    calculate_next_step_time_increment(movement_status[stepper_index].positions,
 		    		movement_status[stepper_index].array_size, &movement_status[stepper_index].current_position_index,
 					&movement_status[stepper_index].accumulated_position, &movement_status[stepper_index].accumulated_time,
-					&steppers_status[stepper_index].direction, &movement_status[stepper_index].step_time_increment);
+					&movement_status[stepper_index].direction, &movement_status[stepper_index].step_time_increment);
 
 
 		    if (movement_status[stepper_index].step_time_increment > 0){
